@@ -1,0 +1,13 @@
+# ============================================================
+# DESTINATÁRIOS DOS ALERTAS
+# ============================================================
+# Para ADICIONAR: escreva uma nova linha com "- endereco@integritywm.com.br"
+# Para REMOVER: apague a linha, ou coloque "#" na frente para desativar
+# sem apagar. Todos os endereços ativos recebem o mesmo e-mail.
+# ============================================================
+destinatarios:
+  - catherine@integritywm.com.br
+  - igor@integritywm.com.br
+  - theo@integritywm.com.br
+  - gabriel@integritywm.com.br
+  - paulo@integritywm.com.br

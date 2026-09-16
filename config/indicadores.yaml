@@ -1,0 +1,65 @@
+# ============================================================
+# INDICADORES MONITORADOS
+# ============================================================
+# Para ALTERAR um gatilho: edite o número em "gatilho" e salve.
+# Para DESATIVAR um indicador sem apagar: mude "ativo" para false.
+# Para ADICIONAR um novo indicador do mesmo tipo (ex.: outro título
+# do Tesouro): copie um bloco inteiro, mude "id" para algo único e
+# ajuste os campos.
+#
+# Campos:
+#   id            identificador único (usado no controle de estado)
+#   ativo         true/false
+#   conector      qual "fonte" usar: dolar | tesouro
+#   frequencia    intradiario (consulta toda execução) | diario (1x/dia)
+#   hora_corte    (só p/ frequencia: diario) só consulta após esta hora,
+#                 pois a fonte só atualiza uma vez por dia de manhã
+#   gatilho       valor que dispara o alerta
+#   operador      ">=" | "<=" | ">" | "<"
+#   rotulo        nome amigável exibido no e-mail
+#   cooldown_horas  intervalo mínimo entre alertas do mesmo indicador
+#                   ao ENTRAR na região do gatilho (evita spam por ruído
+#                   bem em cima da linha; não afeta a regra principal de
+#                   "só alerta de novo se sair e voltar a entrar")
+#   parametros    específicos de cada conector (ver conectores/*.py)
+# ============================================================
+
+- id: dolar
+  ativo: true
+  conector: dolar
+  frequencia: intradiario
+  gatilho: 5.10
+  operador: "<="
+  rotulo: "Dólar · USD/BRL"
+  cooldown_horas: 2
+  parametros: {}
+
+- id: ntnb2040
+  ativo: true
+  conector: tesouro
+  frequencia: diario
+  hora_corte: 10
+  gatilho: 8.00
+  operador: ">="
+  rotulo: "NTN-B · Tesouro IPCA+ 2040"
+  cooldown_horas: 24
+  parametros:
+    tipo: "Tesouro IPCA+"
+    ano_venc: 2040
+    taxa_ref: compra
+    unidade: ipca
+
+- id: ltn2029
+  ativo: true
+  conector: tesouro
+  frequencia: diario
+  hora_corte: 10
+  gatilho: 14.80
+  operador: ">="
+  rotulo: "LTN · Tesouro Prefixado 2029"
+  cooldown_horas: 24
+  parametros:
+    tipo: "Tesouro Prefixado"
+    ano_venc: 2029
+    taxa_ref: compra
+    unidade: prefixado
