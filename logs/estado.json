@@ -8,5 +8,9 @@
   "ltn2029": {
     "dentro": false,
     "ultimo_alerta": null
+  },
+  "dolar": {
+    "dentro": false,
+    "ultimo_alerta": null
   }
 }
