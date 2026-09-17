@@ -28,7 +28,7 @@
   ativo: true
   conector: dolar
   frequencia: intradiario
-  gatilho: 5.10
+  gatilho: 6
   operador: "<="
   rotulo: "Dólar · USD/BRL"
   cooldown_horas: 2
