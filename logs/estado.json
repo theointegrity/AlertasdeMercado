@@ -10,7 +10,7 @@
     "ultimo_alerta": null
   },
   "dolar": {
-    "dentro": false,
-    "ultimo_alerta": null
+    "dentro": true,
+    "ultimo_alerta": "2026-09-17T16:24:56.604722"
   }
 }
