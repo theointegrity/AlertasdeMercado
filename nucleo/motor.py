@@ -123,7 +123,7 @@ def executar() -> None:
             "DENTRO DO GATILHO" if disparou else "fora do gatilho",
         )
 
-        if gerente.deve_alertar(indicador_id, disparou, cfg.get("cooldown_horas", 2)):
+        if gerente.deve_alertar(indicador_id, disparou):
             logging.info("%s | ALERTA DISPARADO", indicador_id)
             gatilho_txt = f"{SIMBOLO_OPERADOR[cfg['operador']]} {cfg['gatilho']}"
             blocos.append(bloco_metrica(cfg["rotulo"], gatilho_txt, leitura))
