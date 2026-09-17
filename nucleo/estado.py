@@ -2,18 +2,13 @@
 """
 Controle de estado e anti-spam.
 
-Regra principal (histerese): um indicador só dispara um NOVO alerta quando
-CRUZA para dentro da região do gatilho (estava fora, passou a estar dentro).
-Enquanto permanece dentro, não repete. Se sair e voltar a entrar, dispara
-de novo.
-
-Cooldown: dentro do momento em que o indicador CRUZA para dentro do
-gatilho, um cooldown mínimo (cooldown_horas) evita que oscilações de
-ruído bem em cima da linha do gatilho (ex.: 5,099 / 5,101 / 5,099 a cada
-consulta) gerem alertas repetidos em sequência.
+Regra: no máximo 1 alerta por indicador por dia civil. Se o indicador
+atingir o gatilho várias vezes no mesmo dia (ou continuar disparando em
+todas as consultas), só a primeira gera e-mail. No dia seguinte, o
+contador reinicia — se ainda estiver disparando, pode alertar de novo.
 """
 import json
-from datetime import datetime, timedelta
+from datetime import date
 from pathlib import Path
 
 
@@ -36,39 +31,25 @@ class GerenciadorEstado:
             json.dumps(self.estado, indent=2, ensure_ascii=False), encoding="utf-8"
         )
 
-    def deve_alertar(self, indicador_id: str, disparou: bool, cooldown_horas: float = 2.0) -> bool:
-        info = self.estado.get(indicador_id, {"dentro": False, "ultimo_alerta": None})
-        estava_dentro = info.get("dentro", False)
+    def deve_alertar(self, indicador_id: str, disparou: bool) -> bool:
+        info = self.estado.get(indicador_id, {})
 
         if not disparou:
-            info["dentro"] = False
             self.estado[indicador_id] = info
             return False
 
-        cruzou_agora = not estava_dentro
-        alertar = False
+        hoje = date.today().isoformat()
+        if info.get("ultimo_alerta_data") == hoje:
+            return False
 
-        if cruzou_agora:
-            ultimo = info.get("ultimo_alerta")
-            dentro_cooldown = False
-            if ultimo:
-                dentro_cooldown = (
-                    datetime.now() - datetime.fromisoformat(ultimo)
-                ) < timedelta(hours=cooldown_horas)
-            alertar = not dentro_cooldown
-
-        info["dentro"] = True
-        if alertar:
-            info["ultimo_alerta"] = datetime.now().isoformat()
+        info["ultimo_alerta_data"] = hoje
         self.estado[indicador_id] = info
-        return alertar
+        return True
 
     def frequencia_diaria_ja_consultada_hoje(self, indicador_id: str) -> bool:
-        from datetime import date
         chave = f"_consultado_diario_{indicador_id}"
         return self.estado.get(chave) == date.today().isoformat()
 
     def marcar_consulta_diaria(self, indicador_id: str) -> None:
-        from datetime import date
         chave = f"_consultado_diario_{indicador_id}"
         self.estado[chave] = date.today().isoformat()
