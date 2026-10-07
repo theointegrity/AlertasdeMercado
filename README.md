@@ -69,10 +69,15 @@ execução para ver o log.
    - `EMAIL_NOME_EXIBICAO` — nome exibido no remetente (opcional)
 
 4. **Conferir o agendamento** em `.github/workflows/monitor.yml` (já vem
-   configurado para dias úteis, ~9h–18h de Brasília, a cada 15 min).
+   configurado para dias úteis, 09:07–17:37 de Brasília, a cada 30 min).
+   O horário comercial em si (dias e horas) fica em `config/geral.yaml`:
+   fora dele o sistema não envia nada, mesmo que o GitHub rode atrasado.
 
 5. **Testar manualmente**: aba Actions → "Monitor de mercado" →
-   "Run workflow". Verifique o log gerado.
+   "Run workflow". Fora do horário comercial, marque "Ignorar horário
+   comercial": nesse modo o e-mail vai só para o administrador
+   (`config/geral.yaml`) e o anti-spam da equipe não é alterado.
+   Verifique o log gerado.
 
 6. Pronto — a partir daqui roda sozinho, sem depender de nenhum computador
    ligado.

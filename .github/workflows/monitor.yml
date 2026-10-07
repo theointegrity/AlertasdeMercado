@@ -2,17 +2,25 @@ name: Monitor de mercado
 
 on:
   schedule:
-    # A cada 15 min, dias úteis, 12:00–21:00 UTC (~9h–18h horário de Brasília).
-    # Cron do GitHub Actions é sempre em UTC.
-    - cron: "*/15 12-21 * * 1-5"
-  workflow_dispatch: {}   # permite rodar manualmente pela aba "Actions" no GitHub
+    # Cron do GitHub Actions é sempre em UTC (Brasília = UTC-3).
+    # Minutos 7 e 37, de 12h a 20h UTC, seg–sex = 09:07 a 17:37 em Brasília.
+    # Minutos "quebrados" porque o GitHub atrasa/descarta mais nos redondos.
+    # Mesmo que o GitHub atrase uma rodada para fora do expediente, o código
+    # confere o horário (config/geral.yaml) e não envia nada.
+    - cron: "7,37 12-20 * * 1-5"
+  workflow_dispatch:      # permite rodar manualmente pela aba "Actions" no GitHub
+    inputs:
+      ignorar_horario:
+        description: "Ignorar horário comercial (TESTE: e-mail só para o administrador, estado não é salvo)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # necessário para persistir o estado (histerese) no repositório
 
 jobs:
   monitorar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +36,7 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_NOME_EXIBICAO: ${{ secrets.EMAIL_NOME_EXIBICAO }}
+          IGNORAR_HORARIO: ${{ inputs.ignorar_horario }}
         run: python main.py
 
       - name: Persistir estado do monitoramento (histerese/anti-spam)

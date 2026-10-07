@@ -11,11 +11,16 @@
 #   id            identificador único (usado no controle de estado)
 #   ativo         true/false
 #   conector      qual "fonte" usar: dolar | tesouro
-#   frequencia    intradiario (consulta toda execução, ~a cada 15 min)
+#   frequencia    intradiario (consulta toda execução, ~a cada 30 min)
 #   gatilho       valor que dispara o alerta
 #   operador      ">=" | "<=" | ">" | "<"
 #   rotulo        nome amigável exibido no e-mail
 #   parametros    específicos de cada conector (ver conectores/*.py)
+#   idade_maxima_horas  (opcional) só dispara alerta se o dado tiver
+#                 menos que essas horas; dado mais velho fica só no log
+#                 e o alerta é tentado de novo na próxima rodada
+#
+# Horário comercial e e-mail do administrador: ver config/geral.yaml.
 #
 # Anti-spam: no máximo 1 e-mail por indicador por dia, mesmo que ele
 # dispare em várias consultas seguidas no mesmo dia. No dia seguinte,
@@ -29,6 +34,7 @@
   gatilho: 5.10
   operador: "<="
   rotulo: "Dólar · USD/BRL"
+  idade_maxima_horas: 2
   parametros: {}
 
 - id: ntnb2040

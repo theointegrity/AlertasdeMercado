@@ -11,6 +11,7 @@ Nenhuma outra parte do sistema precisa ser alterada.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Optional, Tuple
 
 
@@ -25,6 +26,8 @@ class Leitura:
     fonte: str = ""                       # nome da fonte, para exibir no e-mail/log
     data_base: str = ""                   # data de referência do dado, se aplicável
     detalhes: List[Tuple[str, str]] = field(default_factory=list)  # linhas extras no e-mail
+    data_hora: Optional[datetime] = None  # quando a fonte gerou o dado (para checar se está defasado)
+    fonte_alternativa: bool = False       # True se a fonte principal falhou e veio do fallback
 
 
 class Conector(ABC):

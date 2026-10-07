@@ -6,10 +6,16 @@ Regra: no máximo 1 alerta por indicador por dia civil. Se o indicador
 atingir o gatilho várias vezes no mesmo dia (ou continuar disparando em
 todas as consultas), só a primeira gera e-mail. No dia seguinte, o
 contador reinicia — se ainda estiver disparando, pode alertar de novo.
+O "dia" é sempre o de Brasília (ver nucleo/relogio.py).
 """
 import json
-from datetime import date
 from pathlib import Path
+
+from nucleo.relogio import agora
+
+
+def _hoje() -> str:
+    return agora().date().isoformat()
 
 
 class GerenciadorEstado:
@@ -38,7 +44,7 @@ class GerenciadorEstado:
             self.estado[indicador_id] = info
             return False
 
-        hoje = date.today().isoformat()
+        hoje = _hoje()
         if info.get("ultimo_alerta_data") == hoje:
             return False
 
@@ -48,8 +54,20 @@ class GerenciadorEstado:
 
     def frequencia_diaria_ja_consultada_hoje(self, indicador_id: str) -> bool:
         chave = f"_consultado_diario_{indicador_id}"
-        return self.estado.get(chave) == date.today().isoformat()
+        return self.estado.get(chave) == _hoje()
 
     def marcar_consulta_diaria(self, indicador_id: str) -> None:
         chave = f"_consultado_diario_{indicador_id}"
-        self.estado[chave] = date.today().isoformat()
+        self.estado[chave] = _hoje()
+
+    def registrar_saude_fonte(self, indicador_id: str, principal_ok: bool) -> int:
+        """Conta rodadas seguidas com a fonte principal falhando. Devolve o total atual."""
+        chave = f"_falhas_seguidas_{indicador_id}"
+        self.estado[chave] = 0 if principal_ok else self.estado.get(chave, 0) + 1
+        return self.estado[chave]
+
+    def aviso_saude_ja_enviado_hoje(self) -> bool:
+        return self.estado.get("_aviso_saude_data") == _hoje()
+
+    def marcar_aviso_saude_enviado(self) -> None:
+        self.estado["_aviso_saude_data"] = _hoje()

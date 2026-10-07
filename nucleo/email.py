@@ -6,10 +6,11 @@ SMTP. Credenciais vêm sempre de variáveis de ambiente — nunca do código.
 import os
 import smtplib
 import ssl
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
+
+from nucleo.relogio import agora
 
 GOLD = "#B8A46C"
 DARK = "#2B2B2B"
@@ -65,10 +66,10 @@ def bloco_metrica(rotulo: str, gatilho_txt: str, leitura) -> str:
 
 
 def corpo_email(blocos_html: str) -> str:
-    agora = datetime.now()
+    momento = agora()
     meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
               "agosto", "setembro", "outubro", "novembro", "dezembro"]
-    data_ext = f"{agora.day} de {meses[agora.month - 1]} de {agora.year} · {agora:%H:%M}"
+    data_ext = f"{momento.day} de {meses[momento.month - 1]} de {momento.year} · {momento:%H:%M}"
     return f"""<!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -107,6 +108,21 @@ def corpo_email(blocos_html: str) -> str:
     </td></tr>
   </table>
 </td></tr></table>
+</body></html>"""
+
+
+def corpo_saude(problemas: list) -> str:
+    """E-mail simples e interno avisando que uma fonte de dados está falhando."""
+    itens = "".join(f"<li style='margin-bottom:8px;'>{p}</li>" for p in problemas)
+    return f"""<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"></head>
+<body style="font-family:{SANS};font-size:13px;line-height:1.6;color:{DARK};">
+  <p><b>Saúde do sistema de Alertas de Mercado</b> · {agora():%d/%m/%Y %H:%M}</p>
+  <p>A fonte principal de dados está falhando há várias rodadas seguidas.
+  Enquanto isso, alertas que dependem dela podem não ser disparados.</p>
+  <ul>{itens}</ul>
+  <p style="color:{GREY};">Detalhes no log da execução (aba Actions do GitHub).
+  Este aviso é enviado no máximo 1 vez por dia e só para o administrador.</p>
 </body></html>"""
 
 

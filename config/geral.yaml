@@ -1,0 +1,26 @@
+# ============================================================
+# CONFIGURAÇÕES GERAIS DO SISTEMA
+# ============================================================
+# Horário comercial (horário de Brasília). Fora dele o sistema não
+# consulta nada, não envia e-mail e não mexe no anti-spam — o alerta
+# fica para a primeira rodada dentro do expediente.
+#   dias    dias da semana em que roda: seg ter qua qui sex sab dom
+#   inicio  hora de início (9 = a partir das 9:00)
+#   fim     hora de término (18 = até 17:59)
+#
+# Obs.: o agendamento do GitHub (.github/workflows/monitor.yml) também
+# precisa cobrir esses horários; lá o horário é em UTC (Brasília + 3h).
+# ============================================================
+horario_comercial:
+  dias: [seg, ter, qua, qui, sex]
+  inicio: 9
+  fim: 18
+
+# Recebe os e-mails de "saúde do sistema" (falhas de fonte) e os
+# e-mails de teste disparados manualmente com "ignorar horário".
+# Nunca vão para a equipe.
+email_administrador: theo@integritywm.com.br
+
+# Quantas rodadas seguidas com a fonte principal falhando antes de
+# enviar o e-mail de saúde do sistema (no máximo 1 por dia).
+falhas_seguidas_para_aviso: 3
