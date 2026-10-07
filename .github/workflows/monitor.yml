@@ -36,6 +36,7 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_NOME_EXIBICAO: ${{ secrets.EMAIL_NOME_EXIBICAO }}
+          AWESOMEAPI_TOKEN: ${{ secrets.AWESOMEAPI_TOKEN }}
           IGNORAR_HORARIO: ${{ inputs.ignorar_horario }}
         run: python main.py
 

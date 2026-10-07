@@ -67,6 +67,10 @@ execução para ver o log.
    - `EMAIL_USER` — endereço que envia os alertas
    - `EMAIL_PASS` — a senha de app gerada no passo 2
    - `EMAIL_NOME_EXIBICAO` — nome exibido no remetente (opcional)
+   - `AWESOMEAPI_TOKEN` — chave gratuita da AwesomeAPI (cotação do dólar).
+     Sem ela, a AwesomeAPI recusa o GitHub por cota (HTTP 429) e o dólar
+     fica só com a fonte alternativa, que é defasada e não dispara alerta.
+     Crie em https://awesomeapi.com.br/auth/signup → seção "API Keys".
 
 4. **Conferir o agendamento** em `.github/workflows/monitor.yml` (já vem
    configurado para dias úteis, 09:07–17:37 de Brasília, a cada 30 min).

@@ -2,7 +2,9 @@
 """
 Conector do dólar (USD/BRL).
 
-Fonte primária: AwesomeAPI (gratuita, sem chave, quase em tempo real).
+Fonte primária: AwesomeAPI (gratuita, quase em tempo real). Sem chave, ela
+barra o GitHub Actions por cota (HTTP 429), pois os IPs são compartilhados;
+com a chave gratuita (secret AWESOMEAPI_TOKEN) o limite é 100 mil req/mês.
 Fonte alternativa: open.er-api.com (gratuita, sem chave, atualização diária) —
 usada apenas se a primária falhar mesmo após as tentativas de retry, para não
 deixar o indicador "cego" em caso de instabilidade/rate limit da fonte principal.
@@ -11,6 +13,7 @@ As duas fontes informam quando o dado foi gerado (data_hora); o motor usa
 isso para não disparar alerta com cotação defasada.
 """
 import logging
+import os
 import time
 
 import requests
@@ -29,6 +32,7 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
     )
 }
+AWESOMEAPI_TOKEN = os.environ.get("AWESOMEAPI_TOKEN")
 TIMEOUT = 30
 TENTATIVAS = 3
 ESPERA_INICIAL_SEGUNDOS = 3  # dobra a cada nova tentativa (3s, 6s, 12s)
@@ -48,7 +52,10 @@ def _descrever_erro(e: Exception) -> str:
 
 
 def _consultar_awesomeapi():
-    r = requests.get(URL_DOLAR, headers=HEADERS, timeout=TIMEOUT)
+    headers = dict(HEADERS)
+    if AWESOMEAPI_TOKEN:
+        headers["x-api-key"] = AWESOMEAPI_TOKEN
+    r = requests.get(URL_DOLAR, headers=headers, timeout=TIMEOUT)
     r.raise_for_status()
     d = r.json()["USDBRL"]
     data_hora = de_timestamp(int(d["timestamp"]))
@@ -98,6 +105,9 @@ class DolarConector(Conector):
                 ultimo_erro = _descrever_erro(e)
                 logging.warning("dolar | AwesomeAPI falhou (tentativa %s/%s): %s",
                                 tentativa, TENTATIVAS, ultimo_erro)
+                # cota esgotada (429) não volta em segundos: vai direto ao fallback
+                if getattr(getattr(e, "response", None), "status_code", None) == 429:
+                    break
                 if tentativa < TENTATIVAS:
                     time.sleep(espera)
                     espera *= 2
