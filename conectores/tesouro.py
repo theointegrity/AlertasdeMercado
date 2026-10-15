@@ -110,6 +110,7 @@ class TesouroConector(Conector):
             variacao_sufixo=" p.p. vs. dia anterior",
             fonte=f"Tesouro Nacional (base {row['Data Base'].strip()})",
             data_base=row["Data Base"].strip(),
+        unidade="p.p.",
             detalhes=[
                 ("Taxa de compra", f"{prefixo}{taxa_compra:.2f}%".replace(".", ",")
                     + f" · PU R$ {_fmt_brl(pu_compra)}"),

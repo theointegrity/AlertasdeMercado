@@ -28,6 +28,7 @@ class Leitura:
     detalhes: List[Tuple[str, str]] = field(default_factory=list)  # linhas extras no e-mail
     data_hora: Optional[datetime] = None  # quando a fonte gerou o dado (para checar se está defasado)
     fonte_alternativa: bool = False       # True se a fonte principal falhou e veio do fallback
+    unidade: str = ""                     # "R$" ou "p.p." — usada na distância até o gatilho
 
 
 class Conector(ABC):

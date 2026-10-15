@@ -65,7 +65,40 @@ def bloco_metrica(rotulo: str, gatilho_txt: str, leitura) -> str:
     </table>"""
 
 
-def corpo_email(blocos_html: str) -> str:
+def tabela_panorama(linhas: list) -> str:
+    """
+    Seção "Demais indicadores monitorados": uma linha compacta por indicador
+    que não disparou alerta nesta rodada. Cada linha é
+    (rotulo, valor, gatilho, distancia, fonte).
+    """
+    if not linhas:
+        return ""
+    th = f"font-family:{SANS};font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:{GREY};padding:0 0 8px 0;border-bottom:1px solid #E5E1D8;"
+    td = f"font-family:{SANS};font-size:12px;color:{DARK};padding:10px 0 2px 0;"
+    corpo = "".join(
+        f"""<tr>
+          <td style="{td}">{rotulo}</td>
+          <td style="{td}text-align:right;white-space:nowrap;">{valor}</td>
+          <td style="{td}text-align:right;white-space:nowrap;padding-left:12px;">{gatilho}</td>
+          <td style="{td}text-align:right;white-space:nowrap;padding-left:12px;">{distancia}</td>
+        </tr>
+        <tr><td colspan="4" style="font-family:{SANS};font-size:10.5px;color:{GREY};padding:0 0 10px 0;border-bottom:1px solid #F0EDE6;">{fonte}</td></tr>"""
+        for rotulo, valor, gatilho, distancia, fonte in linhas
+    )
+    return f"""
+    <div style="font-family:{SANS};font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:{GOLD};padding:6px 0 12px 0;">Demais indicadores monitorados</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px 0;">
+      <tr>
+        <td style="{th}">Indicador</td>
+        <td style="{th}text-align:right;">Atual</td>
+        <td style="{th}text-align:right;padding-left:12px;">Gatilho</td>
+        <td style="{th}text-align:right;padding-left:12px;">Distância</td>
+      </tr>
+      {corpo}
+    </table>"""
+
+
+def corpo_email(blocos_html: str, panorama_html: str = "") -> str:
     momento = agora()
     meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
               "agosto", "setembro", "outubro", "novembro", "dezembro"]
@@ -94,10 +127,10 @@ def corpo_email(blocos_html: str) -> str:
     </td></tr>
     <tr><td style="padding:18px 48px 6px 48px;">
       <p style="font-family:{SANS};font-size:13px;line-height:1.7;color:{DARK};margin:0 0 26px 0;text-align:justify;">
-        Os níveis de mercado monitorados atingiram os parâmetros definidos.
-        Seguem os dados observados no momento da verificação:</p>
+        Um ou mais indicadores atingiram os parâmetros definidos.
+        Abaixo, o destaque e o panorama dos demais.</p>
     </td></tr>
-    <tr><td style="padding:0 48px;">{blocos_html}</td></tr>
+    <tr><td style="padding:0 48px;">{blocos_html}{panorama_html}</td></tr>
     <tr><td style="padding:0 48px 34px 48px;">
       <div style="height:1px;background:#E5E1D8;font-size:0;line-height:0;margin-bottom:16px;">&nbsp;</div>
       <p style="font-family:{SANS};font-size:10.5px;line-height:1.6;color:{GREY};margin:0;">

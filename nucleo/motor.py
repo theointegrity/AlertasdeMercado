@@ -18,7 +18,7 @@ import yaml
 from conectores.dolar import DolarConector
 from conectores.tesouro import TesouroConector
 from nucleo.estado import GerenciadorEstado
-from nucleo.email import bloco_metrica, corpo_email, corpo_saude, enviar_email
+from nucleo.email import bloco_metrica, corpo_email, corpo_saude, enviar_email, tabela_panorama
 from nucleo.relogio import agora
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,6 +97,31 @@ def _idade_horas(leitura):
     return (agora() - leitura.data_hora).total_seconds() / 3600
 
 
+def _fmt_num(valor: float, casas: int) -> str:
+    return f"{valor:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _linha_panorama(cfg: dict, leitura, disparou: bool) -> tuple:
+    """Linha da seção "Demais indicadores" do e-mail: valor, gatilho e quanto falta."""
+    gatilho_txt = f"{SIMBOLO_OPERADOR[cfg['operador']]} {cfg['gatilho']}"
+    if leitura is None:
+        return (cfg["rotulo"], "&mdash;", gatilho_txt, "indisponível nesta rodada", "")
+
+    if disparou:
+        distancia = "dentro do gatilho"
+    else:
+        falta = abs(cfg["gatilho"] - leitura.valor)
+        if leitura.unidade == "R$":
+            distancia = f"faltam R$ {_fmt_num(falta, 4)}"
+        else:
+            distancia = f"faltam {_fmt_num(falta, 2)} {leitura.unidade}".strip()
+
+    fonte = leitura.fonte
+    if leitura.data_hora is not None:
+        fonte += f" · {leitura.data_hora:%d/%m %H:%M}"
+    return (cfg["rotulo"], leitura.valor_formatado, gatilho_txt, distancia, fonte)
+
+
 def _salvar(gerente: GerenciadorEstado, modo_teste: bool) -> None:
     if modo_teste:
         logging.info("Modo teste: estado NÃO salvo (o anti-spam da equipe não é afetado).")
@@ -134,6 +159,7 @@ def executar() -> None:
     gerente = GerenciadorEstado(ESTADO_PATH)
     blocos = []
     rotulos_disparados = []
+    panorama = []  # indicadores que NÃO dispararam, para a seção "Demais indicadores"
     problemas_saude = []
 
     for cfg in indicadores:
@@ -163,6 +189,7 @@ def executar() -> None:
                     f"<b>{cfg['rotulo']}</b>: {falhas} rodadas seguidas sem resposta "
                     f"de nenhuma fonte. Último erro: {e}"
                 )
+            panorama.append(_linha_panorama(cfg, None, False))
             continue
 
         principal_ok = leitura is None or not leitura.fonte_alternativa
@@ -178,6 +205,7 @@ def executar() -> None:
 
         if leitura is None:
             logging.warning("%s | fonte respondeu, mas o dado não foi encontrado", indicador_id)
+            panorama.append(_linha_panorama(cfg, None, False))
             continue
 
         disparou = _avaliar(leitura.valor, cfg["operador"], cfg["gatilho"])
@@ -198,6 +226,7 @@ def executar() -> None:
                 "%s | dado defasado (limite %sh) — alerta NÃO disparado nesta rodada",
                 indicador_id, idade_maxima,
             )
+            panorama.append(_linha_panorama(cfg, leitura, disparou))
             continue
 
         if gerente.deve_alertar(indicador_id, disparou):
@@ -205,6 +234,8 @@ def executar() -> None:
             gatilho_txt = f"{SIMBOLO_OPERADOR[cfg['operador']]} {cfg['gatilho']}"
             blocos.append(bloco_metrica(cfg["rotulo"], gatilho_txt, leitura))
             rotulos_disparados.append(cfg["rotulo"])
+        else:
+            panorama.append(_linha_panorama(cfg, leitura, disparou))
 
     if problemas_saude and not gerente.aviso_saude_ja_enviado_hoje():
         try:
@@ -228,7 +259,7 @@ def executar() -> None:
         assunto = "[TESTE] " + assunto
 
     try:
-        enviar_email(assunto, corpo_email("".join(blocos)), destinatarios)
+        enviar_email(assunto, corpo_email("".join(blocos), tabela_panorama(panorama)), destinatarios)
         logging.info("E-mail enviado para %s destinatário(s): %s", len(destinatarios), assunto)
         _salvar(gerente, modo_teste)
     except Exception as e:

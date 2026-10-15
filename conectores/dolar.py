@@ -65,6 +65,7 @@ def _consultar_awesomeapi():
         variacao=float(d.get("pctChange") or 0),
         variacao_sufixo="% no dia",
         fonte="AwesomeAPI",
+        unidade="R$",
         detalhes=[
             ("Referência", "Cotação de compra (bid)"),
             ("Horário da cotação", f"{data_hora:%d/%m %H:%M}"),
@@ -90,6 +91,7 @@ def _consultar_fallback():
         ],
         data_hora=data_hora,
         fonte_alternativa=True,
+        unidade="R$",
     )
 
 
