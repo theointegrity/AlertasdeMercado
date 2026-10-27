@@ -7,7 +7,8 @@
   "_consultado_diario_ltn2029": "2026-09-17",
   "ltn2029": {
     "dentro": false,
-    "ultimo_alerta": null
+    "ultimo_alerta": null,
+    "ultimo_alerta_data": "2026-10-27"
   },
   "dolar": {
     "dentro": false,
